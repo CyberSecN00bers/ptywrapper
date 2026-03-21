@@ -62,6 +62,14 @@ Terminal 2: start the wrapped shell and point it at the mock endpoint
 cyber-shell --endpoint-url http://127.0.0.1:8080/api/terminal-events --api-key replace-me
 ```
 
+Alternative: export the variables first, then start `cyber-shell`
+
+```bash
+export CYBER_SHELL_ENDPOINT_URL=http://127.0.0.1:8080/api/terminal-events
+export CYBER_SHELL_API_KEY=replace-me
+cyber-shell
+```
+
 Inside that wrapped shell, run a few commands:
 
 ```bash
