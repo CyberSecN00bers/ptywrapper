@@ -105,6 +105,36 @@ Hoac:
 cyber-shell start --config ~/.config/cyber-shell/config.yaml
 ```
 
+Neu muon override bang env trong Bash, phai `export` hoac dat cung dong lenh:
+
+```bash
+export CYBER_SHELL_ENDPOINT_URL=http://127.0.0.1:8080/api/terminal-events
+export CYBER_SHELL_API_KEY=replace-me
+cyber-shell
+```
+
+Hoac:
+
+```bash
+CYBER_SHELL_ENDPOINT_URL=http://127.0.0.1:8080/api/terminal-events \
+CYBER_SHELL_API_KEY=replace-me \
+cyber-shell
+```
+
+Hoac:
+
+```bash
+cyber-shell --endpoint-url http://127.0.0.1:8080/api/terminal-events --api-key replace-me
+```
+
+De xac nhan dang o trong wrapped shell, chay:
+
+```bash
+echo $CYBER_SHELL_SESSION_ID
+```
+
+Neu co gia tri `sess-...` thi ban dang o trong session cua `cyber-shell`.
+
 In file config mau:
 
 ```bash
