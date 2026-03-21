@@ -81,6 +81,18 @@ Bat mock endpoint o terminal A:
 cyber-shell mock-endpoint --host 127.0.0.1 --port 8080
 ```
 
+Mo dashboard xem event:
+
+```text
+http://127.0.0.1:8080/
+```
+
+Check nhanh service song:
+
+```bash
+curl -i http://127.0.0.1:8080/health
+```
+
 Mo wrapped shell o terminal B:
 
 ```bash
@@ -97,6 +109,15 @@ In file config mau:
 
 ```bash
 cyber-shell print-default-config
+```
+
+Kich event thu cong (khong can mo wrapped shell):
+
+```bash
+curl -i -X POST http://127.0.0.1:8080/api/terminal-events \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer replace-me" \
+  -d '{"session_id":"s1","seq":1,"cmd":"whoami","cwd":"/home/kali","exit_code":0,"output":"kali","output_truncated":false,"started_at":"2026-03-21T10:00:00Z","finished_at":"2026-03-21T10:00:01Z","is_interactive":false,"hostname":"kali","shell":"bash","user_id":"student-01","lab_id":"lab-01","target_id":"t1","metadata":{}}'
 ```
 
 ## Luu y van hanh
