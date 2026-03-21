@@ -11,14 +11,13 @@ class EventAssemblerTests(unittest.TestCase):
         config = AppConfig(max_output_bytes=8)
         assembler = EventAssembler(config, "sess-123")
 
-        assembler.start_command("2026-03-21T08:31:01Z")
+        assembler.start_command("2026-03-21T08:31:01Z", "nmap -sV 10.10.10.5")
         assembler.append_output(b"abcdef")
         assembler.append_output(b"ghijkl")
         event = assembler.finish_command(
             finished_at="2026-03-21T08:31:03Z",
             exit_code=127,
             cwd="/tmp",
-            cmd="nmap -sV 10.10.10.5",
         )
 
         self.assertIsNotNone(event)
@@ -31,12 +30,11 @@ class EventAssemblerTests(unittest.TestCase):
 
     def test_blank_command_is_ignored(self) -> None:
         assembler = EventAssembler(AppConfig(), "sess-123")
-        assembler.start_command("2026-03-21T08:31:01Z")
+        assembler.start_command("2026-03-21T08:31:01Z", "   ")
         event = assembler.finish_command(
             finished_at="2026-03-21T08:31:03Z",
             exit_code=0,
             cwd="/tmp",
-            cmd="   ",
         )
         self.assertIsNone(event)
 

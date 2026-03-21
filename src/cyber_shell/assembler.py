@@ -50,6 +50,7 @@ PREFIX_WRAPPERS = {
 @dataclass(slots=True)
 class ActiveCommand:
     started_at: str
+    cmd: str
     output_buffer: bytearray
     truncated: bool = False
 
@@ -61,8 +62,12 @@ class EventAssembler:
         self._seq = 0
         self._current: ActiveCommand | None = None
 
-    def start_command(self, started_at: str) -> None:
-        self._current = ActiveCommand(started_at=started_at, output_buffer=bytearray())
+    def start_command(self, started_at: str, cmd: str) -> None:
+        self._current = ActiveCommand(
+            started_at=started_at,
+            cmd=cmd.strip(),
+            output_buffer=bytearray(),
+        )
 
     def append_output(self, chunk: bytes) -> None:
         if self._current is None or not chunk:
@@ -81,12 +86,10 @@ class EventAssembler:
         finished_at: str,
         exit_code: int,
         cwd: str,
-        cmd: str,
     ) -> ShellEvent | None:
         current = self._current
         self._current = None
-        cleaned_cmd = cmd.strip()
-        if current is None or not cleaned_cmd:
+        if current is None or not current.cmd:
             return None
 
         self._seq += 1
@@ -99,13 +102,13 @@ class EventAssembler:
             shell="bash",
             seq=self._seq,
             cwd=cwd,
-            cmd=cleaned_cmd,
+            cmd=current.cmd,
             exit_code=exit_code,
             output=current.output_buffer.decode("utf-8", errors="replace"),
             output_truncated=current.truncated,
             started_at=current.started_at,
             finished_at=finished_at,
-            is_interactive=is_interactive_command(cleaned_cmd),
+            is_interactive=is_interactive_command(current.cmd),
             metadata=dict(self._config.metadata),
         )
 

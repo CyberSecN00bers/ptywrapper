@@ -27,9 +27,10 @@ __cyber_shell_now() {
 }
 
 __cyber_shell_preexec() {
-  local started_at
+  local started_at current_cmd
   started_at="$(__cyber_shell_now)"
-  __cyber_shell_write_control PRE "${started_at}"
+  current_cmd="$(__cyber_shell_last_command)"
+  __cyber_shell_write_control PRE "${started_at}" "${current_cmd}"
 }
 
 __cyber_shell_last_command() {
@@ -37,11 +38,10 @@ __cyber_shell_last_command() {
 }
 
 __cyber_shell_postexec() {
-  local exit_code finished_at last_cmd
+  local exit_code finished_at
   exit_code=$?
   finished_at="$(__cyber_shell_now)"
-  last_cmd="$(__cyber_shell_last_command)"
-  __cyber_shell_write_control POST "${finished_at}" "${exit_code}" "${PWD}" "${last_cmd}"
+  __cyber_shell_write_control POST "${finished_at}" "${exit_code}" "${PWD}"
   return "${exit_code}"
 }
 

@@ -36,6 +36,7 @@ class ShellWrapper:
         self._assembler = EventAssembler(config, self._session_id)
         self._control_buffer = bytearray()
         self._control_tokens: list[str] = []
+        self._pending_post: tuple[str, int, str] | None = None
 
     def run(self) -> int:
         if os.name != "posix":
@@ -132,6 +133,8 @@ class ShellWrapper:
                         if not self._forward_stdin(stdin_fd, master_fd):
                             selector.unregister(stdin_fd)
 
+                self._flush_pending_post()
+
                 if process.poll() is not None and master_fd not in selector.get_map():
                     break
         finally:
@@ -147,6 +150,7 @@ class ShellWrapper:
                 except OSError:
                     pass
 
+        self._flush_pending_post()
         return process.wait()
 
     def _build_environment(self, control_fd: int) -> dict[str, str]:
@@ -206,28 +210,39 @@ class ShellWrapper:
         while self._control_tokens:
             event_type = self._control_tokens[0]
             if event_type == "PRE":
-                if len(self._control_tokens) < 2:
+                if len(self._control_tokens) < 3:
                     return
-                started_at = self._control_tokens[1]
-                del self._control_tokens[:2]
-                self._assembler.start_command(started_at)
+                self._flush_pending_post()
+                _, started_at, cmd = self._control_tokens[:3]
+                del self._control_tokens[:3]
+                self._assembler.start_command(started_at, cmd)
                 continue
             if event_type == "POST":
-                if len(self._control_tokens) < 5:
+                if len(self._control_tokens) < 4:
                     return
-                _, finished_at, exit_code, cwd, cmd = self._control_tokens[:5]
-                del self._control_tokens[:5]
-                event = self._assembler.finish_command(
-                    finished_at=finished_at,
-                    exit_code=_safe_int(exit_code),
-                    cwd=cwd,
-                    cmd=cmd,
+                _, finished_at, exit_code, cwd = self._control_tokens[:4]
+                del self._control_tokens[:4]
+                self._pending_post = (
+                    finished_at,
+                    _safe_int(exit_code),
+                    cwd,
                 )
-                if event is not None:
-                    self._emit_event(event)
                 continue
             self._logger.warning("Unknown control token prefix: %s", event_type)
             self._control_tokens.pop(0)
+
+    def _flush_pending_post(self) -> None:
+        if self._pending_post is None:
+            return
+        finished_at, exit_code, cwd = self._pending_post
+        self._pending_post = None
+        event = self._assembler.finish_command(
+            finished_at=finished_at,
+            exit_code=exit_code,
+            cwd=cwd,
+        )
+        if event is not None:
+            self._emit_event(event)
 
     def _emit_event(self, event: ShellEvent) -> None:
         self._telemetry.enqueue(event)
