@@ -34,6 +34,12 @@ __cyber_shell_preexec() {
 }
 
 __cyber_shell_last_command() {
+  local current_cmd
+  current_cmd="$(builtin fc -ln -0 2>/dev/null)" || current_cmd=""
+  if [[ -n "${current_cmd}" ]]; then
+    printf '%s' "${current_cmd}"
+    return 0
+  fi
   builtin fc -ln -1
 }
 
