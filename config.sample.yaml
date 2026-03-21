@@ -1,0 +1,13 @@
+endpoint_url: "http://127.0.0.1:8080/api/terminal-events"
+api_key: "replace-me"
+timeout_ms: 3000
+retry_max: 3
+retry_backoff_ms: 1000
+max_output_bytes: 262144
+queue_size: 256
+shell_path: "/bin/bash"
+user_id: "student-01"
+lab_id: "lab-web-02"
+target_id: "target-a"
+metadata:
+  hostname_group: "kali-lab"
