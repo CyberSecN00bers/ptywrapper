@@ -100,9 +100,6 @@ class EventAssembler:
         self._seq += 1
         return ShellEvent(
             session_id=self._session_id,
-            user_id=self._config.user_id,
-            lab_id=self._config.lab_id,
-            target_id=self._config.target_id,
             hostname=self._config.hostname,
             shell="bash",
             seq=self._seq,

@@ -20,9 +20,6 @@ class AppConfig:
     max_output_bytes: int = 262144
     queue_size: int = 256
     shell_path: str = "/bin/bash"
-    user_id: str | None = None
-    lab_id: str | None = None
-    target_id: str | None = None
     state_dir: Path = DEFAULT_STATE_DIR
     config_path: Path = DEFAULT_CONFIG_PATH
     hostname: str = field(default_factory=socket.gethostname)
@@ -66,13 +63,6 @@ def load_config(path: str | Path | None = None) -> AppConfig:
         shell_path=str(
             _env_or_data("CYBER_SHELL_SHELL_PATH", data, "shell_path") or "/bin/bash"
         ),
-        user_id=_as_optional_str(
-            _env_or_data("CYBER_SHELL_USER_ID", data, "user_id")
-        ),
-        lab_id=_as_optional_str(_env_or_data("CYBER_SHELL_LAB_ID", data, "lab_id")),
-        target_id=_as_optional_str(
-            _env_or_data("CYBER_SHELL_TARGET_ID", data, "target_id")
-        ),
         state_dir=Path(
             _env_or_data("CYBER_SHELL_STATE_DIR", data, "state_dir")
             or DEFAULT_STATE_DIR
@@ -97,9 +87,6 @@ retry_backoff_ms: 1000
 max_output_bytes: 262144
 queue_size: 256
 shell_path: "/bin/bash"
-user_id: "student-01"
-lab_id: "lab-web-02"
-target_id: "target-a"
 metadata:
   hostname_group: "kali-lab"
 """
@@ -118,12 +105,6 @@ def _coerce_int(value: object, default: int) -> int:
         return int(str(value))
     except ValueError:
         return default
-
-
-def _as_optional_str(value: object) -> str | None:
-    if value in (None, "", "null", "None"):
-        return None
-    return str(value)
 
 
 def _coerce_metadata(value: object) -> dict[str, str]:

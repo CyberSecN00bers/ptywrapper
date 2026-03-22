@@ -2,6 +2,8 @@
 
 `cyber-shell` is a local CLI wrapper for interactive Bash on Linux/Kali. It runs a real shell inside a PTY, preserves normal terminal behavior, captures command/output/exit code/cwd, and sends telemetry to a configurable HTTP endpoint in fail-open mode.
 
+`endpoint_url` is the URL of the receiving server. For local testing, that can be the same machine running the mock endpoint. For real deployment, it should point to your backend or AI ingestion server, not to the student machine unless that machine is intentionally hosting the receiver.
+
 ## Features
 
 - Runs a real interactive Bash session inside a PTY.
@@ -106,9 +108,7 @@ retry_max: 3
 retry_backoff_ms: 1000
 max_output_bytes: 262144
 queue_size: 256
-user_id: "student-01"
-lab_id: "lab-web-02"
-target_id: "target-a"
+shell_path: "/bin/bash"
 metadata:
   hostname_group: "kali-lab"
 ```
@@ -129,10 +129,20 @@ Supported environment overrides:
 - `CYBER_SHELL_RETRY_BACKOFF_MS`
 - `CYBER_SHELL_MAX_OUTPUT_BYTES`
 - `CYBER_SHELL_QUEUE_SIZE`
-- `CYBER_SHELL_USER_ID`
-- `CYBER_SHELL_LAB_ID`
-- `CYBER_SHELL_TARGET_ID`
 - `CYBER_SHELL_SHELL_PATH`
+
+## Telemetry Flow
+
+The wrapper sends telemetry with `POST` requests to `endpoint_url`.
+
+- Local test flow:
+  - `cyber-shell` posts JSON to `http://127.0.0.1:8080/api/terminal-events`
+  - the mock endpoint displays those events in its dashboard
+- Production flow:
+  - `cyber-shell` posts JSON to your backend or AI ingestion server
+  - that server stores the events, forwards them, or exposes them to downstream AI components
+
+The wrapper does not need to `GET` logs back from the AI server for the core design. The primary contract is outbound `POST` from the PTY wrapper to the server. Optional `GET` endpoints such as `GET /events` are only for debugging, review, or dashboards.
 
 ## Manual Endpoint Test
 
@@ -142,7 +152,7 @@ You can test the dashboard without starting the wrapped shell:
 curl -i -X POST http://127.0.0.1:8080/api/terminal-events \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer replace-me" \
-  -d '{"session_id":"s1","seq":1,"cmd":"whoami","cwd":"/home/kali","exit_code":0,"output":"kali","output_truncated":false,"started_at":"2026-03-21T10:00:00Z","finished_at":"2026-03-21T10:00:01Z","is_interactive":false,"hostname":"kali","shell":"bash","user_id":"student-01","lab_id":"lab-01","target_id":"t1","metadata":{}}'
+  -d '{"session_id":"s1","seq":1,"cmd":"whoami","cwd":"/home/kali","exit_code":0,"output":"kali","output_truncated":false,"started_at":"2026-03-21T10:00:00Z","finished_at":"2026-03-21T10:00:01Z","is_interactive":false,"hostname":"kali","shell":"bash","metadata":{}}'
 ```
 
 ## Notes
